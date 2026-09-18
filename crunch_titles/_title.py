@@ -8,8 +8,8 @@ def _on_podium_count(medal_count: Dict[Medal, int]) -> int:
     return medal_count.get("GOLD", 0) + medal_count.get("SILVER", 0) + medal_count.get("BRONZE", 0)
 
 
-def _in_top_20_count(medal_count: Dict[Medal, int]) -> int:
-    return medal_count.get("TOP_10_PERCENT", 0) + medal_count.get("TOP_20_PERCENT", 0)
+def _in_top_10(medal_count: Dict[Medal, int]) -> bool:
+    return medal_count.get("TOP_10_PERCENT", 0) > 0
 
 
 def compute_titles(
@@ -52,7 +52,7 @@ def compute_masters(
 ) -> Set[UserId]:
     return compute_titles(
         medal_counts=medal_counts,
-        predicate=lambda medal_count: _on_podium_count(medal_count) >= 1 and _in_top_20_count(medal_count) >= 1,
+        predicate=lambda medal_count: _on_podium_count(medal_count) >= 1 and _in_top_10(medal_count),
         other_sets=[grandmasters],
     )
 
@@ -79,7 +79,7 @@ def compute_ranked(
 ) -> Set[UserId]:
     return compute_titles(
         medal_counts=medal_counts,
-        predicate=lambda medal_count: _in_top_20_count(medal_count) >= 1,
+        predicate=lambda medal_count: _in_top_10(medal_count),
         other_sets=[grandmasters, masters, experts],
     )
 

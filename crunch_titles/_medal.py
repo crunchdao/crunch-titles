@@ -19,7 +19,6 @@ def distribute_medals(
     silver_rank = 2
     bronze_rank = 3
     top_10_percent_rank = ceil(0.10 * max_rank)
-    top_20_percent_rank = ceil(0.20 * max_rank)
 
     for position in positions:
         rank = position["rank"]
@@ -32,8 +31,6 @@ def distribute_medals(
             position["medal"] = "BRONZE"
         elif rank <= top_10_percent_rank:
             position["medal"] = "TOP_10_PERCENT"
-        elif rank <= top_20_percent_rank:
-            position["medal"] = "TOP_20_PERCENT"
         else:
             position["medal"] = "NONE"
 

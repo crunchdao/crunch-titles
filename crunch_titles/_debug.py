@@ -74,16 +74,15 @@ def print_medal_counts(
         item[1].get("BRONZE", 0)
     ), reverse=True)
 
-    printer(f"{'user':<30} {'gold':>6} {'silver':>6} {'bronze':>6} {'top 10%':>6} {'top 20%':>6}")
+    printer(f"{'user':<30} {'gold':>6} {'silver':>6} {'bronze':>6} {'top 10%':>6}")
 
     for user, medals in _sorted_medal_counts:
         gold_count = medals.get("GOLD", "-")
         silver_count = medals.get("SILVER", "-")
         bronze_count = medals.get("BRONZE", "-")
         top_10_percent_rank = medals.get("TOP_10_PERCENT", "-")
-        top_20_percent_count = medals.get("TOP_20_PERCENT", "-")
 
-        printer(f"{user['login']:<30} {gold_count:>6} {silver_count:>6} {bronze_count:>6} {top_10_percent_rank:>6} {top_20_percent_count:>6}")
+        printer(f"{user['login']:<30} {gold_count:>6} {silver_count:>6} {bronze_count:>6} {top_10_percent_rank:>6}")
 
 
 def print_titles_count(
