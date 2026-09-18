@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from logging import Logger
 from textwrap import dedent
-from typing import Callable, Dict, List, Optional, Set, Tuple, cast
+from typing import Callable, Dict, List, Optional, Set, Tuple, cast, get_args
 
 from tqdm.auto import tqdm
 
@@ -477,6 +477,7 @@ class LoadEverythingRepository(Repository):
             return
 
         user_id_placeholders = ", ".join(["%s"] * len(user_ids))
+        title_ordinal = get_args(Title).index(title) + 1
 
         self._database.competition.insert(
             f"""
@@ -486,11 +487,11 @@ class LoadEverythingRepository(Repository):
                     `title` = %s
                 WHERE
                     `id` IN ({user_id_placeholders})
-                    AND `title` < %s
+                    AND `title` + 0 <= %s
             """,
             params=(
                 title,
                 *user_ids,
-                title,
+                title_ordinal,
             )
         )
