@@ -8,7 +8,7 @@ from crunch_titles._constants import TitlesParameters
 from crunch_titles._database import Database
 from crunch_titles._debug import print_competition_positions_count, print_medal_counts, print_user_ranks
 from crunch_titles._medal import count_medals_per_user, distribute_medals
-from crunch_titles._model import Competition, CompetitionName, Medal, User
+from crunch_titles._model import Competition, CompetitionName, Medal, TitleLeaderboard, User
 from crunch_titles._position import LeaderboardPosition, determine_positions
 from crunch_titles._repository import LoadEverythingRepository, Repository
 from crunch_titles._title import compute_all_titles
@@ -139,7 +139,8 @@ def average_leaderboards(
     return averaged, user_count
 
 
-LocalTitlePositionPerCompetitionYearList = List[Tuple[Tuple[Competition, int], List[LocalTitlePosition], int]]
+LocalTitlePositionPerCompetitionYearItem = Tuple[Tuple[Competition, int], List[LocalTitlePosition], int]
+LocalTitlePositionPerCompetitionYearList = List[LocalTitlePositionPerCompetitionYearItem]
 
 
 def merge_leaderboards(
@@ -203,6 +204,37 @@ def merge_leaderboards(
     return all_positions
 
 
+def _restore_competition(
+    *,
+    repository: LoadEverythingRepository,
+    leaderboard: TitleLeaderboard,
+) -> LocalTitlePositionPerCompetitionYearItem:
+    competition = repository.find_competition_by_id(leaderboard["competition_id"])
+    positions = repository.find_all_title_positions_by_leaderboard(leaderboard)
+
+    local_positions: List[LocalTitlePosition] = [
+        {
+            "competition": competition,
+            "year": leaderboard["year"],
+            "user": repository.find_user_by_id(position["user_id"]),
+            "average": position["averaged_rank"],
+            "rank": position["meta_rank"],
+            "participation_count": position["participation_count"],
+            "medal": position["medal"],
+        }
+        for position in positions
+    ]
+
+    return (
+        (
+            competition,
+            leaderboard["year"]
+        ),
+        local_positions,
+        len(local_positions),
+    )
+
+
 def compute(
     *,
     database: Database,
@@ -261,11 +293,47 @@ def compute(
                 user_count=user_count,
             )
 
-        medal_counts = count_medals_per_user(
-            merged_leaderboards=merged_leaderboards,
+    if True:
+        for (competition, year), _ in grouped_positions:
+            repository.delete_title_leaderboard_by_competition_and_year(competition, year)
+
+        for (competition, year), title_positions, user_count in merged_leaderboards:
+            title_leaderboard = repository.create_title_leaderboard({
+                "competition_id": competition["id"],
+                "year": year,
+                "week_count": 0,  # TODO!
+                "original_size": user_count,
+                "size": len(title_positions),
+            })
+
+            for position in title_positions:
+                repository.create_title_position({
+                    "leaderboard_id": title_leaderboard["id"],
+                    "user_id": position["user"]["id"],
+                    "averaged_rank": position["average"],
+                    "participation_count": position["participation_count"],
+                    "meta_rank": position["rank"],
+                    "medal": position["medal"],
+                })
+
+    if True:
+        restored_all_leaderboards: LocalTitlePositionPerCompetitionYearList = [
+            _restore_competition(repository=repository, leaderboard=leaderboard)
+            for leaderboard in repository.find_all_title_leaderboards()
+        ]
+
+    if True:
+        for (competition, year), positions, user_count in restored_all_leaderboards:
+            distribute_medals(
+                positions=positions,
+                user_count=user_count,
+            )
+
+        all_medal_counts = count_medals_per_user(
+            merged_leaderboards=restored_all_leaderboards,
         )
 
-        print_medal_counts(logger.info, medal_counts)
+        print_medal_counts(logger.info, all_medal_counts)
 
     if True:
         (
@@ -274,25 +342,12 @@ def compute(
             expert_user_ids,
             ranked_user_ids,
         ) = compute_all_titles(
-            medal_counts=medal_counts,
+            medal_counts=all_medal_counts,
         )
 
-        assert len(grandmaster_user_ids) + len(master_user_ids) + len(expert_user_ids) + len(ranked_user_ids) == len(medal_counts)
+        assert len(grandmaster_user_ids) + len(master_user_ids) + len(expert_user_ids) + len(ranked_user_ids) == len(all_medal_counts)
 
     if True:
-        for (competition, year), _ in grouped_positions:
-            repository.delete_title_positions_by_competition_and_year(competition, year)
-
-        for (competition, year), title_positions, user_count in averaged_leaderboards:
-            for position in title_positions:
-                repository.create_title_position({
-                    "competition_id": competition["id"],
-                    "year": year or 0,
-                    "user_id": position["user"]["id"],
-                    "rank": position["rank"],
-                    "medal": position["medal"],
-                })
-
         repository.set_title_for_users("GRANDMASTER", grandmaster_user_ids)
         repository.set_title_for_users("MASTER", master_user_ids)
         repository.set_title_for_users("EXPERT", expert_user_ids)

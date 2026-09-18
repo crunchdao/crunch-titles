@@ -1,7 +1,7 @@
 from datetime import date as Date
 from datetime import datetime as DateTime
-from typing import Literal, NewType, Optional, TypedDict
 from decimal import Decimal
+from typing import Literal, NewType, Optional, TypedDict
 
 from typing_extensions import ReadOnly, TypeAlias
 
@@ -18,6 +18,8 @@ CrunchTargetId = NewType("CrunchTargetId", int)
 TargetId = NewType("TargetId", int)
 CrunchId = NewType("CrunchId", int)
 TeamId = NewType("TeamId", int)
+TitleLeaderboardId = NewType("TitleLeaderboardId", int)
+TitlePositionId = NewType("TitlePositionId", int)
 
 
 class User(TypedDict):
@@ -111,19 +113,32 @@ class PayoutRecipient(TypedDict):
     rank: int
 
 
-Medal = Literal["NONE", "TOP_20_PERCENT", "TOP_10_PERCENT", "BRONZE", "SILVER", "GOLD"]
+Medal = Literal["NONE", "TOP_10_PERCENT", "BRONZE", "SILVER", "GOLD"]
+
+
+class TitleLeaderboardBody(TypedDict):
+    competition_id: CompetitionId
+    year: int  # Not null, use zero
+    week_count: int
+    original_size: int
+    size: int
+
+
+class TitleLeaderboard(TitleLeaderboardBody):
+    id: ReadOnly[TitleLeaderboardId]
 
 
 class TitlePositionBody(TypedDict):
-    competition_id: CompetitionId
-    year: int  # Not null, use zero
+    leaderboard_id: TitleLeaderboardId
     user_id: UserId
-    rank: int
+    averaged_rank: float
+    participation_count: int
+    meta_rank: int
     medal: Medal
 
 
 class TitlePosition(TitlePositionBody):
-    id: ReadOnly[int]
+    id: ReadOnly[TitlePositionId]
 
 
 Title = Literal["NOVICE", "CRUNCHER", "CONTRIBUTOR", "RANKED", "EXPERT", "MASTER", "GRANDMASTER"]
