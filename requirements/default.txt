@@ -2,4 +2,4 @@ mysql-connector-python
 tqdm
 python-dotenv
 typing-extensions
-crunch-global-leaderboard @ https://github.com/crunchdao/crunch-global-leaderboard/archive/refs/tags/0.1.3.tar.gz
+crunch-global-leaderboard @ https://github.com/crunchdao/crunch-global-leaderboard/archive/refs/tags/0.1.4.tar.gz
