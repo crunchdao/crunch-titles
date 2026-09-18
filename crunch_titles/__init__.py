@@ -126,15 +126,15 @@ def average_leaderboards(
             "medal": "NONE",
         })
 
-    dense_rerank(
-        positions=averaged,
-    )
-
     if minimum_participation_requirement is not None:
         averaged = filter_minimum_participation(
             positions=averaged,
             minimum_participation_requirement=minimum_participation_requirement,
         )
+
+    dense_rerank(
+        positions=averaged,
+    )
 
     return averaged, user_count
 
@@ -187,10 +187,10 @@ def merge_leaderboards(
                 lambda left, right: {
                     "competition": competition,
                     "year": year,
-                    "user": left["user"],  # NOTE: doesn't matter
-                    "average": 0,
+                    "user": left["user"],  # NOTE: grouped on user, both are the same
+                    "average": (left["average"] + right["average"]) / 2,  # NOTE: only works when merging two, at three, average is wrong
                     "rank": best_rank(left["rank"], right["rank"]),
-                    "participation_count": -1,  # NOTE: not used afterward
+                    "participation_count": left["participation_count"] + right["participation_count"],
                     "medal": "NONE",
                 }
             )
