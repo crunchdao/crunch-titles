@@ -23,7 +23,7 @@ TitleLeaderboardId = NewType("TitleLeaderboardId", int)
 TitlePositionId = NewType("TitlePositionId", int)
 
 
-Title = Literal["NOVICE", "CRUNCHER", "CONTRIBUTOR", "RANKED", "EXPERT", "MASTER", "GRANDMASTER"]
+Title = Literal["NOVICE", "CONTRIBUTOR", "BUILDER", "RANKED", "EXPERT", "MASTER", "GRANDMASTER"]
 
 class User(TypedDict):
     id: ReadOnly[UserId]
