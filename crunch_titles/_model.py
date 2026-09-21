@@ -18,6 +18,7 @@ CrunchTargetId = NewType("CrunchTargetId", int)
 TargetId = NewType("TargetId", int)
 CrunchId = NewType("CrunchId", int)
 TeamId = NewType("TeamId", int)
+TeamMemberId = NewType("TeamMemberId", int)
 TitleLeaderboardId = NewType("TitleLeaderboardId", int)
 TitlePositionId = NewType("TitlePositionId", int)
 
@@ -111,6 +112,17 @@ class PayoutRecipient(TypedDict):
     payout_id: PayoutId
     user_id: UserId
     rank: int
+
+
+class Team(TypedDict):
+    id: ReadOnly[TeamId]
+    competition_id: CompetitionId
+
+
+class TeamMember(TypedDict):
+    id: ReadOnly[TeamMemberId]
+    team_id: TeamId
+    user_id: UserId
 
 
 Medal = Literal["NONE", "TOP_10_PERCENT", "BRONZE", "SILVER", "GOLD"]

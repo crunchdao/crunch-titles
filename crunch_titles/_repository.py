@@ -28,6 +28,9 @@ from crunch_titles._model import (
     RoundId,
     Target,
     TargetId,
+    Team,
+    TeamId,
+    TeamMember,
     Title,
     TitleLeaderboard,
     TitleLeaderboardBody,
@@ -104,6 +107,14 @@ class Repository(ABC):
         ...
 
     @abstractmethod
+    def find_all_teams(self, competition: Competition) -> List[Team]:
+        ...
+
+    @abstractmethod
+    def find_all_team_members(self, team: Team) -> List[TeamMember]:
+        ...
+
+    @abstractmethod
     def create_title_leaderboard(self, body: TitleLeaderboardBody) -> TitleLeaderboard:
         ...
 
@@ -145,6 +156,8 @@ class LoadEverythingRepository(Repository):
     _position_by_leaderboard_id: Dict[LeaderboardId, List[Position]]
     _payouts_by_competition_id: Dict[CompetitionId, List[Payout]]
     _payout_recipients_by_payout_id: Dict[PayoutId, List[PayoutRecipient]]
+    _teams_by_competition_id: Dict[CompetitionId, List[Team]]
+    _team_members_by_team_id: Dict[TeamId, List[TeamMember]]
     _title_leaderboard_by_competition_id_and_year: Dict[Tuple[CompetitionId, int], TitleLeaderboard]
     _title_positions_by_leaderboard_id: Dict[TitleLeaderboardId, List[TitlePosition]]
 
@@ -301,6 +314,27 @@ class LoadEverythingRepository(Repository):
                 key=lambda row: row["payout_id"],
             )
 
+        def _load_teams():
+            teams = self._database.competition.query_many_objects(
+                Team,
+                where="NOT `deleted`",
+            )
+
+            team_members = self._database.competition.query_many_objects(
+                TeamMember,
+                where="`team_id` NOT IN (SELECT `id` FROM `teams` WHERE `deleted`)",  # TODO Prefer join?
+            )
+
+            self._teams_by_competition_id = group_by(
+                teams,
+                key=lambda row: row["competition_id"],
+            )
+
+            self._team_members_by_team_id = group_by(
+                team_members,
+                key=lambda row: row["team_id"],
+            )
+
         def _load_title_leaderboards():
             self._title_leaderboard_by_competition_id_and_year = to_dict(
                 self._database.competition.query_many_objects(TitleLeaderboard),
@@ -325,6 +359,7 @@ class LoadEverythingRepository(Repository):
             _load_leaderboards,
             _load_positions,
             _load_paid_checkpoint_payouts,
+            _load_teams,
             _load_title_leaderboards,
             _load_title_positions,
         ]
@@ -386,6 +421,12 @@ class LoadEverythingRepository(Repository):
 
     def find_all_payout_recipients(self, payout: Payout) -> List[PayoutRecipient]:
         return self._payout_recipients_by_payout_id.get(payout["id"]) or []
+
+    def find_all_teams(self, competition: Competition) -> List[Team]:
+        return self._teams_by_competition_id.get(competition["id"]) or []
+
+    def find_all_team_members(self, team: Team) -> List[TeamMember]:
+        return self._team_members_by_team_id.get(team["id"]) or []
 
     def find_all_title_leaderboards(self) -> List[TitleLeaderboard]:
         return list(self._title_leaderboard_by_competition_id_and_year.values())

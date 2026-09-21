@@ -87,6 +87,8 @@ def _determine_offline_positions(
     default_leaderboard_definition: LeaderboardDefinition,
     targets: List[Target],
 ):
+    is_team_based = competition["team_based"]
+
     all_positions: List[LeaderboardPosition] = []
     for round in rounds:
         phase = repository.find_out_of_sample_phase(round)
@@ -110,7 +112,7 @@ def _determine_offline_positions(
 
             positions = repository.find_all_positions(leaderboard)
 
-            if competition["team_based"]:
+            if is_team_based:
                 best_rank_per_team_id = merge(
                     best_rank_per_team_id,
                     to_dict(
@@ -143,7 +145,7 @@ def _determine_offline_positions(
                 best_rank,
             )
 
-        if competition["team_based"]:
+        if is_team_based:
             best_rank_per_user_id = merge(
                 best_rank_per_user_id,
                 {
@@ -153,6 +155,16 @@ def _determine_offline_positions(
                 },
                 best_rank,
             )
+
+            for team in repository.find_all_teams(competition):
+                for member in repository.find_all_team_members(team):
+                    user_id = member["user_id"]
+                    team_id = team["id"]
+
+                    if user_id in best_rank_per_user_id:
+                        continue
+
+                    best_rank_per_user_id[user_id] = best_rank(None, best_rank_per_team_id.get(team_id))
 
         leaderboard_size = len(best_rank_per_user_id)
         leaderboard_max_rank = max((rank for rank in best_rank_per_user_id.values() if rank is not None))
