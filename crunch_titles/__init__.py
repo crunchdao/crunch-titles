@@ -1,6 +1,6 @@
 from logging import Logger
 from math import ceil
-from typing import List, Optional, Tuple, TypedDict
+from typing import List, Tuple, TypedDict
 
 from tqdm import tqdm
 
@@ -64,33 +64,21 @@ def dense_rerank(
     return rank
 
 
-def get_minimum_participation_requirement(
+def filter_minimum_participation(
     *,
     competition: Competition,
     week_count: int,
-) -> Optional[int]:
-    if competition["mode"] == "OFFLINE":
-        if competition["continuous"]:
-            return ceil(week_count * TitlesParameters.MINIMUM_PARTICIPATION_PERCENTAGE)
-        else:
-            return None
-
-    elif competition["mode"] == "REAL_TIME":
-        return None
-
-    else:
-        raise ValueError(f"unsupported competition mode: {competition['mode']}")
-
-
-def filter_minimum_participation(
-    *,
     positions: List[LocalTitlePosition],
-    minimum_participation_requirement: int,
 ) -> List[LocalTitlePosition]:
+    if not (competition["mode"] == "OFFLINE" and competition["continuous"]):
+        return positions
+
+    minimum = ceil(week_count * TitlesParameters.MINIMUM_PARTICIPATION_PERCENTAGE)
+
     return [
         position
         for position in positions
-        if position["participation_count"] >= minimum_participation_requirement
+        if position["participation_count"] >= minimum
     ]
 
 
@@ -103,11 +91,6 @@ def average_leaderboards(
     week_count = nunique(positions, key=lambda x: x["week_key"]["id"])
     if not week_count:
         return [], 0
-
-    minimum_participation_requirement = get_minimum_participation_requirement(
-        competition=competition,
-        week_count=week_count,
-    )
 
     rows_per_user = group_by(positions, key=lambda x: x["user"]["id"])
     user_count = len(rows_per_user)
@@ -126,11 +109,11 @@ def average_leaderboards(
             "medal": "NONE",
         })
 
-    if minimum_participation_requirement is not None:
-        averaged = filter_minimum_participation(
-            positions=averaged,
-            minimum_participation_requirement=minimum_participation_requirement,
-        )
+    averaged = filter_minimum_participation(
+        competition=competition,
+        week_count=week_count,
+        positions=averaged,
+    )
 
     dense_rerank(
         positions=averaged,

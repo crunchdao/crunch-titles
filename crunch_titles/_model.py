@@ -23,9 +23,12 @@ TitleLeaderboardId = NewType("TitleLeaderboardId", int)
 TitlePositionId = NewType("TitlePositionId", int)
 
 
+Title = Literal["NOVICE", "CRUNCHER", "CONTRIBUTOR", "RANKED", "EXPERT", "MASTER", "GRANDMASTER"]
+
 class User(TypedDict):
     id: ReadOnly[UserId]
     login: str
+    title: Title
 
 
 CompetitionMode: TypeAlias = Literal["OFFLINE", "REAL_TIME"]
@@ -151,6 +154,3 @@ class TitlePositionBody(TypedDict):
 
 class TitlePosition(TitlePositionBody):
     id: ReadOnly[TitlePositionId]
-
-
-Title = Literal["NOVICE", "CRUNCHER", "CONTRIBUTOR", "RANKED", "EXPERT", "MASTER", "GRANDMASTER"]
