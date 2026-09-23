@@ -9,7 +9,7 @@ def _on_podium_count(medal_count: Dict[Medal, int]) -> int:
 
 
 def _in_top_10(medal_count: Dict[Medal, int]) -> bool:
-    return medal_count.get("TOP_10_PERCENT", 0) > 0
+    return medal_count.get("HONORABLE_MENTION", 0) > 0
 
 
 def compute_titles(

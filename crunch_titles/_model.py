@@ -128,7 +128,7 @@ class TeamMember(TypedDict):
     user_id: UserId
 
 
-Medal = Literal["NONE", "TOP_10_PERCENT", "BRONZE", "SILVER", "GOLD"]
+Medal = Literal["NONE", "HONORABLE_MENTION", "BRONZE", "SILVER", "GOLD"]
 
 
 class TitleLeaderboardBody(TypedDict):

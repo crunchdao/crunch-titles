@@ -80,9 +80,9 @@ def print_medal_counts(
         gold_count = medals.get("GOLD", "-")
         silver_count = medals.get("SILVER", "-")
         bronze_count = medals.get("BRONZE", "-")
-        top_10_percent_rank = medals.get("TOP_10_PERCENT", "-")
+        honorable_mention_count = medals.get("HONORABLE_MENTION", "-")
 
-        printer(f"{user['login']:<30} {gold_count:>6} {silver_count:>6} {bronze_count:>6} {top_10_percent_rank:>6}")
+        printer(f"{user['login']:<30} {gold_count:>6} {silver_count:>6} {bronze_count:>6} {honorable_mention_count:>6}")
 
 
 def print_titles_count(
