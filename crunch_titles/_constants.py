@@ -1,18 +1,10 @@
-from typing import Dict, List, cast
+from typing import Dict, List
 
 from crunch_titles._model import CompetitionName
 
 
-def _name(value: str):
-    return cast(CompetitionName, value)
-
-
 class TitlesParameters:
-    MERGED_COMPETITIONS: Dict[CompetitionName, List[CompetitionName]] = {
-        _name("structural-break"): [
-            _name("structural-break-open-benchmark"),
-        ],
-    }
+    MERGED_COMPETITIONS: Dict[CompetitionName, List[CompetitionName]] = {}
 
     MINIMUM_PARTICIPATION_PERCENTAGE: float = 0.25
 
