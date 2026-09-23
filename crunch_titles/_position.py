@@ -71,12 +71,37 @@ def _determine_real_time_positions(
                 year=year,
                 week_key=payout,
                 user=user,
-                rank=recipient["rank"],  # TODO rerank to account for ties?
+                rank=recipient["rank"],
                 leaderboard_size=payout["size"],
                 leaderboard_max_rank=max_rank,
             ))
 
+        dense_rerank_recipients(positions=all_positions)
+
     return all_positions
+
+
+def dense_rerank_recipients(
+    *,
+    positions: List[LeaderboardPosition],
+):
+    rank = 0
+    previous_value = None
+
+    positions.sort(key=lambda x: x["rank"])
+    new_ranks: List[int] = []
+
+    for position in positions:
+        if position["rank"] != previous_value:
+            rank += 1
+            previous_value = position["rank"]
+
+        new_ranks.append(rank)
+
+    for position, new_rank in zip(positions, new_ranks):
+        position["rank"] = new_rank
+
+    return rank
 
 
 def _determine_offline_positions(
@@ -171,7 +196,7 @@ def _determine_offline_positions(
 
         for user_id, reward_rank in best_rank_per_user_id.items():
             if reward_rank is None:
-                # print(f"User {user_id} has no reward rank.")
+                print(f"[{competition['name']}] user {user_id} has no reward rank")
                 continue  # NOTE: Often happen for users in teams where leader did not submit
 
             all_positions.append(_new_position(
