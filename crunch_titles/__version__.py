@@ -1,6 +1,6 @@
 __title__ = 'crunch-titles'
 __description__ = 'crunch-titles - Titles core implementation for the CrunchDAO Platform'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __author__ = 'Enzo CACERES'
 __author_email__ = 'enzo.caceres@crunchdao.com'
 __url__ = 'https://github.com/crunchdao/crunch-titles'
